@@ -1,7 +1,6 @@
 package hero.bane.mixin;
 
 import hero.bane.HerosHitbox;
-import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.client.network.PlayerListEntry;
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.WorldRenderer;
@@ -13,7 +12,6 @@ import net.minecraft.entity.decoration.InteractionEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.projectile.WindChargeEntity;
 import net.minecraft.entity.projectile.thrown.EnderPearlEntity;
-import net.minecraft.item.Items;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Vec3d;
 import org.joml.Vector3f;
@@ -40,7 +38,7 @@ public abstract class EntityRenderDispatcherMixin {
 	)
 	private static void otherHitboxChange(MatrixStack matrices, VertexConsumer vertices, Entity entity, float tickDelta, float red, float green, float blue, CallbackInfo ci) {
 		if (HerosHitbox.pearlChanged && entity instanceof EnderPearlEntity) {
-			drawBoxHelper(matrices, vertices, entity, "#175F53", 1.0F);
+			drawBoxHelper(matrices, vertices, entity, "#00FFFF", 1.0F);
 			ci.cancel();
 		} else if (HerosHitbox.windChanged && entity instanceof WindChargeEntity) {
 			drawBoxHelper(matrices, vertices, entity, "#F9FFC0", 1.0F);
@@ -55,18 +53,27 @@ public abstract class EntityRenderDispatcherMixin {
 		} else if (HerosHitbox.interactionChanged && entity instanceof InteractionEntity) {
 			drawBoxHelper(matrices, vertices, entity, "#FFFFFF", 0.2F);
 			ci.cancel();
-		} else if (HerosHitbox.elytraHitboxChanged && entity instanceof PlayerEntity && ((PlayerEntity) entity).isFallFlying()) {
-			drawBoxHelper(matrices, vertices, entity, "#FFAAAA", 1.0F);
-			ci.cancel();
-		} else if (HerosHitbox.shieldHitboxChanged && entity instanceof PlayerEntity && ((PlayerEntity) entity).getMainHandStack().isOf(Items.SHIELD)) {
-			if(behindEntity(entity)){
-				drawBoxHelper(matrices, vertices, entity, "#AAFFAA", 1.0F);
-			} else {
-				drawBoxHelper(matrices, vertices, entity, "#FFAAAA", 1.0F);
+		} else if ((HerosHitbox.shieldHitboxChanged || HerosHitbox.elytraHitboxChanged) && entity instanceof PlayerEntity) {
+			if (HerosHitbox.shieldHitboxChanged) {
+				if (behindEntity(entity)) {
+					if (((PlayerEntity) entity).isFallFlying() && HerosHitbox.elytraHitboxChanged) {
+						drawBoxHelper(matrices, vertices, entity, "#AAFFFF", 1.0F);
+					} else {
+						drawBoxHelper(matrices, vertices, entity, "#AAFFAA", 1.0F);
+					}
+				} else {
+					if (((PlayerEntity) entity).isFallFlying() && HerosHitbox.elytraHitboxChanged) {
+						drawBoxHelper(matrices, vertices, entity, "#FFAAFF", 1.0F);
+					} else {
+						drawBoxHelper(matrices, vertices, entity, "#FFAAAA", 1.0F);
+					}
+				}
+			} else if (((PlayerEntity) entity).isFallFlying()) {
+				drawBoxHelper(matrices, vertices, entity, "#AAAAFF", 1.0F);
 			}
+			onDrawVectorHead(matrices, vertices, entity, tickDelta, red, green, blue, ci);
 			ci.cancel();
 		}
-
 	}
 
 	@Inject(
@@ -87,7 +94,7 @@ public abstract class EntityRenderDispatcherMixin {
 
 					assert myPlayer != null;
 
-					PlayerListEntry playerEntry = ((ClientPlayNetworkHandler) Objects.requireNonNull(HerosHitbox.client.getNetworkHandler())).getPlayerListEntry(player.getUuid());
+					PlayerListEntry playerEntry = Objects.requireNonNull(HerosHitbox.client.getNetworkHandler()).getPlayerListEntry(player.getUuid());
 					if (playerEntry != null) {
 						ping = playerEntry.getLatency() == 0 ? playerEntry.getLatency() : 25;
 					}
@@ -110,11 +117,11 @@ public abstract class EntityRenderDispatcherMixin {
 						drawVector(matrices, vertices, new Vector3f(0.0F, entity.getStandingEyeHeight() - 1.0F, 0.0F), facingMe.multiply(clientLength), colorCalc(10.0D * clientVelocity));
 					}
 				}
+			} else {
+				drawVector(matrices, vertices, new Vector3f(0.0F, entity.getStandingEyeHeight(), 0.0F), entity.getRotationVec(tickDelta).multiply(2.0F), -16776961);
 			}
-
 			ci.cancel();
 		}
-
 	}
 
 	@Unique
