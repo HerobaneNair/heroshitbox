@@ -1,0 +1,34 @@
+{
+	"schemaVersion": 1,
+	"id": "heroshitbox",
+	"version": "${version}",
+	"name": "heroshitbox",
+	"description": "This is an example description! Tell everyone what your mod is about!",
+	"authors": [
+		"HerobaneNair"
+	],
+	"contact": {
+		"homepage": "https://fabricmc.net/",
+		"sources": "https://github.com/FabricMC/fabric-example-mod"
+	},
+	"license": "CC0-1.0",
+	"icon": "assets/heroshitbox/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"client": [
+			"hero.bane.HerosHitbox"
+		]
+	},
+	"mixins": [
+		{
+			"config": "heroshitbox.client.mixins.json",
+			"environment": "client"
+		}
+	],
+	"depends": {
+		"fabricloader": ">=0.15.11",
+		"minecraft": "~1.21",
+		"java": ">=21",
+		"fabric-api": "*"
+	}
+}
